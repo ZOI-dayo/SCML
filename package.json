@@ -30,6 +30,6 @@
     "ts-node": "^10.3.0"
   },
   "bin": {
-    "scml": "./bin/scml.js"
+    "scml": "bin/scml.mjs"
   }
 }
