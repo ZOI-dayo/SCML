@@ -1,9 +1,8 @@
-export class Func {
+export abstract class Func {
     private name: string;
     protected constructor(name: string) {
         this.name = name;
     }
 
-    public run(currentPath: string, argv: string[]) {
-    }
+    public abstract run(currentPath: string, argv: string[]): void;
 }

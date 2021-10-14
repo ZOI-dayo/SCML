@@ -17,7 +17,7 @@ const appMessage: string =
     "    +-------------------------------------+\n" +
     "\n"
 
-const notFoundErrMessage: Function = (name: string) => {
+const notFoundErrMessage: (name: string) => string = (name: string) => {
     return "\n" +
         "[" + colors.red("ERROR") + "]: \"" + name + "\" not found\n" +
         "\n"
@@ -45,4 +45,4 @@ function run(currentPath: string, argv: string[]) {
     }
 }
 
-export const onCommand: Function = (currentPath: string, argv: string[]) => run(currentPath, argv);
+export const onCommand: (currentPath: string, argv: string[]) => void = (currentPath: string, argv: string[]) => run(currentPath, argv);
