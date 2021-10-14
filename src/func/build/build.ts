@@ -1,6 +1,7 @@
 import {Func} from "../func";
 import fs from "fs";
 import path from "path";
+import prettier from "prettier";
 
 // import {JSDOM} from "jsdom";
 
@@ -11,7 +12,7 @@ export class BuildFunc extends Func {
         super("build");
     }
 
-    override run(currentPath: string, argv: string[]) {
+    override run(currentPath: string, argv: string[]): void {
         console.log("initializing dist directory...");
         BuildFunc.prepareDir(currentPath);
         console.log("initialize finish.");
@@ -20,11 +21,18 @@ export class BuildFunc extends Func {
         for (const name in pages) {
             const page: Page = pages[name];
             const compiled: string = page.compile(components);
-            console.log(compiled)
+
+            console.log("---");
+            type PrettierType = { format: (src: string, option: { semi: boolean, parser: string }) => string };
+            const formatted: string = (prettier as PrettierType).format(compiled, {
+                semi: false,
+                parser: "html"
+            });
+            console.log(formatted);
         }
     }
 
-    private static prepareDir(projectPath: string) {
+    private static prepareDir(projectPath: string): void {
         const distPath: string = path.join(projectPath, "dist");
         if (fs.existsSync(distPath)) {
             console.log("clearing dist directory...");
@@ -37,10 +45,10 @@ export class BuildFunc extends Func {
         const componentsPath: string = path.join(projectPath, "components");
 
         const fileList: string[] = BuildFunc.getFiles(componentsPath, componentsPath);
-        const components: { [key: string]: Component } = {}
+        const components: { [key: string]: Component } = {};
         fileList.forEach(fName => {
             const content: string = fs.readFileSync(path.join(componentsPath, fName), "utf-8");
-            const name: string = path.basename(fName, path.extname(fName))
+            const name: string = path.basename(fName, path.extname(fName));
             components[name] = new Component(name, content);
         });
         return components;
@@ -49,9 +57,10 @@ export class BuildFunc extends Func {
     private loadPages(projectPath: string): { [key: string]: Page } {
         const pagesPath: string = path.join(projectPath, "pages");
         const fileList: string[] = BuildFunc.getFiles(pagesPath, pagesPath);
-        const pages: { [key: string]: Page } = {}
-        fileList.forEach(name => {
-            const content: string = fs.readFileSync(path.join(pagesPath, name), "utf-8");
+        const pages: { [key: string]: Page } = {};
+        fileList.forEach(fName => {
+            const content: string = fs.readFileSync(path.join(pagesPath, fName), "utf-8");
+            const name: string = path.basename(fName, path.extname(fName));
             pages[name] = new Page(name, content);
         });
         return pages;
@@ -67,7 +76,7 @@ export class BuildFunc extends Func {
             else if (elStat.isDirectory()) {
                 const innerFiles: string[] = BuildFunc.getFiles(rootPath, elPath);
                 innerFiles.forEach(file => {
-                    allFiles.push(file)
+                    allFiles.push(file);
                 });
             }
         });
@@ -75,75 +84,55 @@ export class BuildFunc extends Func {
     }
 }
 
-class Component {
-    private name;
-    // public document: JSDOM;
-    public document: string;
+class HtmlContent {
+    public readonly name: string;
+    private readonly document: string;
+    private comliledDocument: string;
 
-    constructor(name: string, content: string) {
+    public constructor(name: string, content: string) {
         this.name = name;
-        // this.document = new JSDOM(content);
         this.document = content;
+        this.comliledDocument = this.document;
     }
 
-    public compile(components: { [key: string]: Component }, options: { [key: string]: string }): string {
+    protected compile(components: { [key: string]: Component }, resolved: string[]): string {
+        if (resolved.includes(this.name)) return this.document;
+        resolved.push(this.name);
+        this.comliledDocument = this.document;
         for (const name in components) {
             const component = components[name];
-            /*
-            const elements: HTMLCollectionOf<Element> = this.document.window.document.getElementsByTagName(name);
-            if (elements.length === 0) continue;
-            for (let i = 0; i < elements.length; i++) {
-                const elem: Element | null = elements.item(i);
-                if(elem === null) continue;
-                elem.replaceWith(component.compile(components));
-            }
-            */
-            const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", 'g');
-            this.document.match(tagPattern)?.forEach((node: string, index: number) => {
-                const options: { [key: string]: string } = {}
-                const optionPattern = /\S*="\S*"/g;
-                node.match(optionPattern)?.forEach((optionPairStr: string) => {
-                    const splittedStr: string[] = optionPairStr.split('=');
-                    const optionKey: string = splittedStr[0];
-                    options[optionKey] = splittedStr[1].slice(1, -1);
-                })
-                node.replace(node, component.compile(components, options));
+            // const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "g");
+            const tagPattern = /< *MyComponent(.*?)\/>/g;
+            this.comliledDocument = this.comliledDocument.replace(tagPattern, (match: string): string => {
+                return HtmlContent.compileFromTag(components, component, match, resolved);
             });
         }
-        return this.document.toString();
+        return this.comliledDocument;
+    }
+
+    private static compileFromTag(components: { [key: string]: Component }, component: Component, tag: string, resolved: string[]): string {
+        const options: { [key: string]: string } = {};
+        const optionPattern = /\S*="\S*"/g;
+        tag.match(optionPattern)?.forEach((optionPairStr: string) => {
+            const splittedStr: string[] = optionPairStr.split("=");
+            const optionKey: string = splittedStr[0];
+            options[optionKey] = splittedStr[1].slice(1, -1);
+        });
+        return component.compile(components, resolved, options);
     }
 }
 
-class Page {
-    private name;
-    public document: JSDOM;
-
-    constructor(name: string, content: string) {
-        this.name = name;
-        this.document = new JSDOM(content);
-    }
-
-    public compile(components: { [key: string]: Component }): string {
-        console.log(`elem : ${components.toString()}`);
-        for (const name in components) {
-            console.log("name : " + name);
-            const component = components[name];
-            const elements: HTMLCollectionOf<Element> = this.document.window.document.getElementsByTagName(name);
-            console.log(`elements : ${elements.toString()}`);
-            if (elements.length === 0) continue;
-            for (let i = 0; i < elements.length; i++) {
-                const elem: Element | null = elements.item(i);
-                if (elem === null) continue;
-                console.log(`elem : ${elem.toString()}`);
-                elem.replaceWith(component.compile(components));
-                console.log(`a`);
-            }
-            // for (const elem in elements) {
-            //     console.log("elem : " + elem);
-            //     // elem.replaceWith(component.node);
-            // }
+class Component extends HtmlContent {
+    public override compile(components: { [key: string]: Component }, resolved: string[], options?: { [key: string]: string }): string {
+        if (options != null) {
+            console.log(options);
         }
-        console.log("elem exit");
-        return this.document.serialize();
+        return super.compile(components, resolved);
+    }
+}
+
+class Page extends HtmlContent {
+    public compile(components: { [key: string]: Component }): string {
+        return super.compile(components, []);
     }
 }

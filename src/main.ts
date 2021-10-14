@@ -15,12 +15,12 @@ const appMessage: string =
     "    |     `$ npx scml build`              |\n" +
     "    |                                     |\n" +
     "    +-------------------------------------+\n" +
-    "\n"
+    "\n";
 
 const notFoundErrMessage: (name: string) => string = (name: string) => {
     return "\n" +
         "[" + colors.red("ERROR") + "]: \"" + name + "\" not found\n" +
-        "\n"
+        "\n";
 };
 
 const funcList: { [key: string]: Func; } = {
@@ -28,7 +28,7 @@ const funcList: { [key: string]: Func; } = {
     "build": BuildFunc._instance,
 };
 
-function run(currentPath: string, argv: string[]) {
+function run(currentPath: string, argv: string[]): void {
     if (argv.length === 0) {
         return;
     }

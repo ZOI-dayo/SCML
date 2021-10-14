@@ -9,7 +9,7 @@ export class InitFunc extends Func {
         super("init");
     }
 
-    override run(currentPath: string, argv: string[]) {
+    override run(currentPath: string, argv: string[]): void {
         const dirMap: string[] = [
             "assets",
             "components",
@@ -17,7 +17,7 @@ export class InitFunc extends Func {
             "static"
         ];
         for (const dirName of dirMap) {
-            const dirPath: string = path.join(currentPath, dirName.replace('/', path.sep));
+            const dirPath: string = path.join(currentPath, dirName.replace("/", path.sep));
             if (!fs.existsSync(dirPath)) {
                 console.log("creating \"" + dirName + "\" directory...");
                 fs.mkdirSync(dirPath);
@@ -37,10 +37,12 @@ export class InitFunc extends Func {
                 "}\n" +
                 "</style>\n",
             "pages/index.html":
-                "<MyComponent />\n",
+                "<div>\n" +
+                "  <MyComponent />\n" +
+                "</div>\n",
         };
         for (const fileName in fileMap) {
-            const filePath: string = path.join(currentPath, fileName.replace('/', path.sep))
+            const filePath: string = path.join(currentPath, fileName.replace("/", path.sep));
             if (!fs.existsSync(filePath)) {
                 console.log("creating \"" + fileName + "\" ...");
                 fs.writeFileSync(filePath, fileMap[fileName], {flag: "wx"});
