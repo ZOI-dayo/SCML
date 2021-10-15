@@ -3,8 +3,6 @@ import fs from "fs";
 import path from "path";
 import prettier from "prettier";
 
-// import {JSDOM} from "jsdom";
-
 export class BuildFunc extends Func {
     public static _instance: BuildFunc = new BuildFunc();
 
@@ -88,7 +86,6 @@ class HtmlContent {
     public readonly name: string;
     private readonly document: string;
     private compiledDocument: string;
-    private style = "";
 
     public constructor(name: string, content: string) {
         this.name = name;
@@ -96,14 +93,29 @@ class HtmlContent {
         this.compiledDocument = this.document;
     }
 
-    protected compile(components: { [key: string]: Component }, resolved: string[]): string {
+    protected compile(components: { [key: string]: Component }, resolved: string[], options?: { [key: string]: string }): string {
         if (resolved.includes(this.name)) return this.document;
         resolved.push(this.name);
         this.compiledDocument = this.document;
+        if (options !== undefined) {
+            for (const optionsKey in options) {
+                const optionValue = options[optionsKey];
+                console.log(optionsKey + " : " + optionValue);
+                this.compiledDocument = this.compiledDocument.replace(`{{ ${optionsKey} }}`, optionValue);
+            }
+        }
+        this.compiledDocument = this.compiledDocument.replace(/<script scml>.*<\/script>/s, (source: string): string => {
+            const docFuncSource = source
+                .replace("<script scml>", "")
+                .replace("</script>", "");
+            const docFunc: () => void = eval(docFuncSource) as () => void;
+            docFunc();
+            return "";
+        });
         for (const name in components) {
             const component = components[name];
-            // const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "g");
-            const tagPattern = /< *MyComponent(.*?)\/>/g;
+            const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "gs");
+            // const tagPattern = /< *MyComponent(.*?)\/>/g;
             this.compiledDocument = this.compiledDocument.replace(tagPattern, (match: string): string => {
                 return HtmlContent.compileFromTag(components, component, match, resolved);
             });
@@ -136,7 +148,7 @@ class Component extends HtmlContent {
         if (options !== null) {
             console.log(options);
         }
-        return super.compile(components, resolved);
+        return super.compile(components, resolved, options);
     }
 }
 
