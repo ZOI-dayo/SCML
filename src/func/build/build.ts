@@ -87,44 +87,53 @@ export class BuildFunc extends Func {
 class HtmlContent {
     public readonly name: string;
     private readonly document: string;
-    private comliledDocument: string;
+    private compiledDocument: string;
+    private style = "";
 
     public constructor(name: string, content: string) {
         this.name = name;
         this.document = content;
-        this.comliledDocument = this.document;
+        this.compiledDocument = this.document;
     }
 
     protected compile(components: { [key: string]: Component }, resolved: string[]): string {
         if (resolved.includes(this.name)) return this.document;
         resolved.push(this.name);
-        this.comliledDocument = this.document;
+        this.compiledDocument = this.document;
         for (const name in components) {
             const component = components[name];
             // const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "g");
             const tagPattern = /< *MyComponent(.*?)\/>/g;
-            this.comliledDocument = this.comliledDocument.replace(tagPattern, (match: string): string => {
+            this.compiledDocument = this.compiledDocument.replace(tagPattern, (match: string): string => {
                 return HtmlContent.compileFromTag(components, component, match, resolved);
             });
         }
-        return this.comliledDocument;
+        return this.compiledDocument;
     }
 
     private static compileFromTag(components: { [key: string]: Component }, component: Component, tag: string, resolved: string[]): string {
         const options: { [key: string]: string } = {};
-        const optionPattern = /\S*="\S*"/g;
-        tag.match(optionPattern)?.forEach((optionPairStr: string) => {
+        const keyValueOptionPattern = new RegExp("\\S+((=\".+?\")|[^\\s\\S])", "g");
+        // const simpleOptionPattern = new RegExp("\\S*=\"\\S*\"", "g");
+        tag.match(keyValueOptionPattern)?.forEach((optionPairStr: string) => {
             const splittedStr: string[] = optionPairStr.split("=");
             const optionKey: string = splittedStr[0];
             options[optionKey] = splittedStr[1].slice(1, -1);
         });
+        tag.trim().split(" ")
+            .map(str => {
+                return str.trim();
+            })
+            .filter(str => {
+                return str.search(/([^a-zA-Z0-9_-])+/) === -1;
+            }).forEach(str => options[str] = "");
         return component.compile(components, resolved, options);
     }
 }
 
 class Component extends HtmlContent {
     public override compile(components: { [key: string]: Component }, resolved: string[], options?: { [key: string]: string }): string {
-        if (options != null) {
+        if (options !== null) {
             console.log(options);
         }
         return super.compile(components, resolved);
