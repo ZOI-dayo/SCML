@@ -20,6 +20,7 @@ export class BuildFunc extends Func {
         console.log("initialize finish.");
         const components: { [key: string]: Component } = this.loadComponents(buildInfo.currentDir);
         const pages: { [key: string]: Page } = this.loadPages(buildInfo.currentDir);
+        fs.rmdirSync(buildInfo.distDir, {recursive: true});
         for (const name in pages) {
             const page: Page = pages[name];
             const compiled: string = page.compile(components, buildInfo);
@@ -33,7 +34,6 @@ export class BuildFunc extends Func {
                 parser: "html"
             });
             console.log(formatted);
-            fs.rmdirSync(buildInfo.distDir);
             const filePath = path.join(buildInfo.distDir, name + ".html");
             if(!fs.existsSync(path.dirname(filePath))) fs.mkdirSync(path.dirname(filePath), {recursive: true});
             fs.writeFileSync(path.join(buildInfo.distDir, name + ".html"), formatted);
@@ -77,7 +77,7 @@ export class BuildFunc extends Func {
         const pages: { [key: string]: Page } = {};
         fileList.forEach(fName => {
             const content: string = fs.readFileSync(path.join(pagesPath, fName), "utf-8");
-            const name: string = path.basename(fName, path.extname(fName));
+            const name: string = path.join(path.dirname(fName), path.basename(fName, path.extname(fName)));
             pages[name] = new Page(name, content);
         });
         return pages;
