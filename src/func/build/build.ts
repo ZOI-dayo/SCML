@@ -33,7 +33,17 @@ export class BuildFunc extends Func {
                 parser: "html"
             });
             console.log(formatted);
+            fs.rmdirSync(buildInfo.distDir);
+            const filePath = path.join(buildInfo.distDir, name + ".html");
+            if(!fs.existsSync(path.dirname(filePath))) fs.mkdirSync(path.dirname(filePath), {recursive: true});
+            fs.writeFileSync(path.join(buildInfo.distDir, name + ".html"), formatted);
         }
+        BuildFunc.getFiles(buildInfo.staticDir, buildInfo.staticDir).forEach(fPath => {
+            const distFilePath = path.join(buildInfo.distDir, fPath);
+            if(!fs.existsSync(path.dirname(distFilePath))) fs.mkdirSync(path.dirname(distFilePath), {recursive: true});
+            fs.copyFileSync(path.join(buildInfo.staticDir, fPath), distFilePath)
+            console.log(fPath);
+        });
     }
 
     private static prepareDir(projectPath: string): void {
@@ -93,9 +103,14 @@ export class BuildFunc extends Func {
 
 export class BuildInfo {
     public readonly currentDir: string;
-    public get staticDir():string {
+
+    public get staticDir(): string {
         return path.join(this.currentDir, "static");
     }
+
+    public get distDir(): string {
+        return path.join(this.currentDir, "dist");
+    };
 
     constructor(currentDir: string) {
         this.currentDir = currentDir;

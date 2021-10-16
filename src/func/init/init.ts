@@ -58,12 +58,8 @@ export class InitFunc extends Func {
                 "    - item 1" +
                 "    - item 2" +
                 "" +
-                "* list 2" +
-                "    * item 1" +
-                "    * item 2" +
-                "" +
-                "1. list 3" +
-                "2. list 3" +
+                "1. list 2 (item 1)" +
+                "2. list 2 (item 2)" +
                 "" +
                 "# heading 1" +
                 "## heading 2" +
@@ -72,8 +68,6 @@ export class InitFunc extends Func {
                 "" +
                 "> \"blockQuote" +
                 "you can break line\"" +
-                "" +
-                "[link](google.com \"Google\")" +
                 "" +
                 "---" +
                 "",
