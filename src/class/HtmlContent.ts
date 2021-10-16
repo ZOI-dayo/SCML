@@ -1,4 +1,5 @@
 import {Component} from "./HtmlContent/Component";
+import {BuildInfo} from "../func/build/build";
 
 export class HtmlContent {
     public readonly name: string;
@@ -11,7 +12,7 @@ export class HtmlContent {
         this.compiledDocument = this.document;
     }
 
-    protected compile(components: { [key: string]: Component }, resolved: string[], options?: { [key: string]: string }): string {
+    protected compile(components: { [key: string]: Component }, buildInfo: BuildInfo, resolved: string[], options: { [key: string]: string }): string {
         if (resolved.includes(this.name)) return this.document;
         resolved.push(this.name);
         this.compiledDocument = this.document;
@@ -19,7 +20,7 @@ export class HtmlContent {
             for (const optionsKey in options) {
                 const optionValue = options[optionsKey];
                 console.log(optionsKey + " : " + optionValue);
-                this.compiledDocument = this.compiledDocument.replace(`{{ ${optionsKey} }}`, optionValue);
+                this.compiledDocument = this.compiledDocument.replace(new RegExp(`\{\{ ${optionsKey} \}\}`, "g"), optionValue);
             }
         }
         let additionOption: { [key: string]: string } = {};
@@ -27,27 +28,29 @@ export class HtmlContent {
             const docFuncSource = source
                 .replace("<script scml>", "")
                 .replace("</script>", "");
-            const docFunc: (options: { [key: string]: string }) => { [key: string]: string } = eval(docFuncSource) as (options: { [key: string]: string }) => { [key: string]: string };
-            additionOption = docFunc(options ?? {});
+            const docFunc: (buildInfo: BuildInfo, options: { [key: string]: string }) => { [key: string]: string } = eval(docFuncSource) as (buildInfo: BuildInfo, options: { [key: string]: string }) => { [key: string]: string };
+
+            additionOption = docFunc(buildInfo, options ?? {});
             return "";
         });
         for (const optionsKey in additionOption) {
+            console.log("k :" +optionsKey);
             const optionValue = additionOption[optionsKey];
-            console.log(optionsKey + " : " + optionValue);
-            this.compiledDocument = this.compiledDocument.replace(`{{{ ${optionsKey} }}}`, optionValue);
+            console.log("v: " + optionValue);
+            this.compiledDocument = this.compiledDocument.replace(new RegExp(`\\[\\[ ${optionsKey} \\]\\]`, "g"), optionValue);
         }
         for (const name in components) {
             const component = components[name];
             const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "gs");
             // const tagPattern = /< *MyComponent(.*?)\/>/g;
             this.compiledDocument = this.compiledDocument.replace(tagPattern, (match: string): string => {
-                return HtmlContent.compileFromTag(components, component, match, resolved);
+                return HtmlContent.compileFromTag(components, buildInfo, component, match, resolved);
             });
         }
         return this.compiledDocument;
     }
 
-    private static compileFromTag(components: { [key: string]: Component }, component: Component, tag: string, resolved: string[]): string {
+    private static compileFromTag(components: { [key: string]: Component }, buildInfo: BuildInfo, component: Component, tag: string, resolved: string[]): string {
         const options: { [key: string]: string } = {};
         const keyValueOptionPattern = new RegExp("\\S+((=\".*?\")|[^\\s\\S])", "g");
         // const simpleOptionPattern = new RegExp("\\S*=\"\\S*\"", "g");
@@ -63,6 +66,6 @@ export class HtmlContent {
             .filter(str => {
                 return str.search(/([^a-zA-Z0-9_-])+/) === -1;
             }).forEach(str => options[str] = "");
-        return component.compile(components, resolved, options);
+        return component.compile(components, buildInfo, resolved, options);
     }
 }

@@ -14,15 +14,18 @@ export class BuildFunc extends Func {
     }
 
     override run(currentPath: string, argv: string[]): void {
+        const buildInfo = new BuildInfo(currentPath);
         console.log("initializing dist directory...");
-        BuildFunc.prepareDir(currentPath);
+        BuildFunc.prepareDir(buildInfo.currentDir);
         console.log("initialize finish.");
-        const components: { [key: string]: Component } = this.loadComponents(currentPath);
-        const pages: { [key: string]: Page } = this.loadPages(currentPath);
+        const components: { [key: string]: Component } = this.loadComponents(buildInfo.currentDir);
+        const pages: { [key: string]: Page } = this.loadPages(buildInfo.currentDir);
         for (const name in pages) {
             const page: Page = pages[name];
-            const compiled: string = page.compile(components);
+            const compiled: string = page.compile(components, buildInfo);
 
+            console.log("---");
+            console.log(compiled);
             console.log("---");
             type PrettierType = { format: (src: string, option: { semi: boolean, parser: string }) => string };
             const formatted: string = (prettier as PrettierType).format(compiled, {
@@ -85,5 +88,16 @@ export class BuildFunc extends Func {
             }
         });
         return allFiles;
+    }
+}
+
+export class BuildInfo {
+    public readonly currentDir: string;
+    public get staticDir():string {
+        return path.join(this.currentDir, "static");
+    }
+
+    constructor(currentDir: string) {
+        this.currentDir = currentDir;
     }
 }

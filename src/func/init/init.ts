@@ -30,7 +30,7 @@ export class InitFunc extends Func {
                 "<header>\n" +
                 "  <span>This is header</span>\n" +
                 "</header>\n" +
-                "<style scoped>\n" +
+                "<style>\n" +
                 "header {\n" +
                 "  width: 100%;\n" +
                 "  background-color: azure;\n" +
@@ -39,7 +39,44 @@ export class InitFunc extends Func {
             "pages/index.html":
                 "<div>\n" +
                 "  <MyComponent />\n" +
+                "  <Markdown src=\"@/test.md\" />\n" +
                 "</div>\n",
+            "static/test.md":
+                "paragraph 1" +
+                "" +
+                "paragraph 2" +
+                "" +
+                "*strong*" +
+                "**STRONG**" +
+                "" +
+                "`inline code`" +
+                "```" +
+                "block code" +
+                "```" +
+                "" +
+                "- list 1" +
+                "    - item 1" +
+                "    - item 2" +
+                "" +
+                "* list 2" +
+                "    * item 1" +
+                "    * item 2" +
+                "" +
+                "1. list 3" +
+                "2. list 3" +
+                "" +
+                "# heading 1" +
+                "## heading 2" +
+                "### heading 3" +
+                "#### heading 4" +
+                "" +
+                "> \"blockQuote" +
+                "you can break line\"" +
+                "" +
+                "[link](google.com \"Google\")" +
+                "" +
+                "---" +
+                "",
         };
         for (const fileName in fileMap) {
             const filePath: string = path.join(currentPath, fileName.replace("/", path.sep));

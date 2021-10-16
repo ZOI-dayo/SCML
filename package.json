@@ -1,6 +1,6 @@
 {
   "name": "scml",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Simple Component Markup Language",
   "main": "dist/main.js",
   "types": "dist/index.d.ts",
@@ -23,6 +23,7 @@
   "homepage": "https://github.com/ZOI-dayo/SCML#readme",
   "dependencies": {
     "colors": "^1.4.0",
+    "marked": "^3.0.7",
     "prettier": "^2.4.1"
   },
   "devDependencies": {
