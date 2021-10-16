@@ -41,7 +41,7 @@ export class InitFunc extends Func {
                 "  <MyComponent />\n" +
                 "  <Markdown src=\"@/test.md\" />\n" +
                 "</div>\n",
-            "static/test.md":
+            "assets/test.md":
                 "paragraph 1" +
                 "" +
                 "paragraph 2" +

@@ -112,6 +112,10 @@ export class BuildInfo {
         return path.join(this.currentDir, "dist");
     };
 
+    public get assetsDir(): string {
+        return path.join(this.currentDir, "assets");
+    };
+
     constructor(currentDir: string) {
         this.currentDir = currentDir;
     }

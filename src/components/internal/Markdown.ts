@@ -17,9 +17,9 @@ export class Markdown {
     const path = require("path");
     const rawPath = options["src"];
     if(rawPath === undefined) return {};
-    let staticPath = rawPath.startsWith("@" + path.sep) ? rawPath.replace("@" + path.sep, "") : rawPath;
+    let assetsPath = rawPath.startsWith("@" + path.sep) ? rawPath.replace("@" + path.sep, "") : rawPath;
     
-    const fileContent = fs.readFileSync(path.join(buildInfo.staticDir, staticPath), "utf-8");
+    const fileContent = fs.readFileSync(path.join(buildInfo.assetsDir, assetsPath), "utf-8");
     return {
         "mdContent": marked(fileContent),
     };
