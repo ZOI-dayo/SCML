@@ -5,6 +5,7 @@ import prettier from "prettier";
 import {Component} from "../../class/HtmlContent/Component";
 import {Page} from "../../class/HtmlContent/Page";
 import {InternalComponentsLoader} from "../../components/InternalComponentsLoader";
+import {Command} from "commander";
 
 export class BuildFunc extends Func {
     public static _instance: BuildFunc = new BuildFunc();
@@ -13,8 +14,8 @@ export class BuildFunc extends Func {
         super("build");
     }
 
-    override run(currentPath: string, argv: string[]): void {
-        const buildInfo = new BuildInfo(currentPath);
+    override run(currentPath: string, command: Command): void {
+        const buildInfo = new BuildInfo(currentPath, command);
         console.log("initializing dist directory...");
         BuildFunc.prepareDir(buildInfo.currentDir);
         console.log("initialize finish.");
@@ -103,6 +104,7 @@ export class BuildFunc extends Func {
 
 export class BuildInfo {
     public readonly currentDir: string;
+    public readonly command: Command;
 
     public get staticDir(): string {
         return path.join(this.currentDir, "static");
@@ -116,7 +118,16 @@ export class BuildInfo {
         return path.join(this.currentDir, "assets");
     };
 
-    constructor(currentDir: string) {
+    public get lang(): string {
+        return this.command.getOptionValue("lang") as string;
+    }
+
+    public hasOption(option: string) : boolean {
+        return this.command.getOptionValue(option) !== undefined;
+    }
+
+    constructor(currentDir: string, command: Command) {
         this.currentDir = currentDir;
+        this.command = command;
     }
 }
