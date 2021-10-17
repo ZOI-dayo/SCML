@@ -1,5 +1,5 @@
 {
-  "name": "scml",
+  "name": "@zoi-dayo/scml",
   "version": "0.2.3",
   "description": "Simple Component Markup Language",
   "main": "dist/main.js",
