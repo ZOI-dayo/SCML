@@ -16,6 +16,8 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
           scope: '@zoi-dayo'
       - run: npm install
+      - run: rm -f -r ./dist
+      - run: npx tsc
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
