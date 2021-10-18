@@ -5,7 +5,7 @@ import prettier from "prettier";
 import {Component} from "../../class/HtmlContent/Component";
 import {Page} from "../../class/HtmlContent/Page";
 import {InternalComponentsLoader} from "../../components/InternalComponentsLoader";
-import {Command} from "commander";
+import {CommandOption} from "../../command/CommandOption";
 
 export class BuildFunc extends Func {
     public static _instance: BuildFunc = new BuildFunc();
@@ -14,8 +14,10 @@ export class BuildFunc extends Func {
         super("build");
     }
 
-    override run(currentPath: string, command: Command): void {
-        const buildInfo = new BuildInfo(currentPath, command);
+    override run(currentPath: string, args: string[]): void {
+        const buildInfo = new BuildInfo(currentPath, args, [
+            new CommandOption("lang", "l"),
+        ]);
         console.log("initializing dist directory...");
         BuildFunc.prepareDir(buildInfo.currentDir);
         console.log("initialize finish.");
@@ -36,12 +38,12 @@ export class BuildFunc extends Func {
             });
             console.log(formatted);
             const filePath = path.join(buildInfo.distDir, name + ".html");
-            if(!fs.existsSync(path.dirname(filePath))) fs.mkdirSync(path.dirname(filePath), {recursive: true});
+            if (!fs.existsSync(path.dirname(filePath))) fs.mkdirSync(path.dirname(filePath), {recursive: true});
             fs.writeFileSync(path.join(buildInfo.distDir, name + ".html"), formatted);
         }
         BuildFunc.getFiles(buildInfo.staticDir, buildInfo.staticDir).forEach(fPath => {
             const distFilePath = path.join(buildInfo.distDir, fPath);
-            if(!fs.existsSync(path.dirname(distFilePath))) fs.mkdirSync(path.dirname(distFilePath), {recursive: true});
+            if (!fs.existsSync(path.dirname(distFilePath))) fs.mkdirSync(path.dirname(distFilePath), {recursive: true});
             fs.copyFileSync(path.join(buildInfo.staticDir, fPath), distFilePath)
             console.log(fPath);
         });
@@ -104,7 +106,8 @@ export class BuildFunc extends Func {
 
 export class BuildInfo {
     public readonly currentDir: string;
-    public readonly command: Command;
+    public readonly args: string[];
+    public readonly options: CommandOption[];
 
     public get staticDir(): string {
         return path.join(this.currentDir, "static");
@@ -112,22 +115,48 @@ export class BuildInfo {
 
     public get distDir(): string {
         return path.join(this.currentDir, "dist");
-    };
+    }
 
     public get assetsDir(): string {
         return path.join(this.currentDir, "assets");
-    };
-
-    public get lang(): string {
-        return this.command.getOptionValue("lang") as string;
     }
 
-    public hasOption(option: string) : boolean {
-        return this.command.getOptionValue(option) !== undefined;
+    public get lang(): string[] {
+        return this.options.filter(option => option.name === "lang")[0]?.getValues() ?? [];
     }
 
-    constructor(currentDir: string, command: Command) {
+    public hasOption(optionName: string): boolean {
+        return this.options.filter(option => option.name === optionName || option.shortName === optionName).length > 0;
+    }
+
+    constructor(currentDir: string, args: string[], options: CommandOption[]) {
         this.currentDir = currentDir;
-        this.command = command;
+        this.args = args;
+        this.options = options;
+        let compilingOptionIndex = -1;
+        for (const arg of args) {
+            if (arg.startsWith("-")) {
+                let optionName: string = arg;
+                let hyphenCounter = 0;
+                while (optionName.startsWith("-")) {
+                    hyphenCounter++;
+                    optionName = optionName.slice(1);
+                }
+                options.filter(option => {
+                    if (hyphenCounter === 1) {
+                        return option.shortName === optionName;
+                    } else if (hyphenCounter === 2) {
+                        return option.name === optionName;
+                    }
+                }).forEach(option => {
+                    option.setExist(true);
+                    compilingOptionIndex = options.indexOf(option);
+                });
+            } else {
+                if (compilingOptionIndex < 0) continue;
+                const option = options[compilingOptionIndex];
+                option.addValue(arg);
+            }
+        }
     }
 }

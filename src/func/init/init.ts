@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import {Func} from "../func";
-import {Command} from "commander";
 
 export class InitFunc extends Func {
     public static _instance: InitFunc = new InitFunc();
@@ -10,7 +9,7 @@ export class InitFunc extends Func {
         super("init");
     }
 
-    override run(currentPath: string, command: Command): void {
+    override run(currentPath: string, args: string[]): void {
         const dirMap: string[] = [
             "assets",
             "components",
