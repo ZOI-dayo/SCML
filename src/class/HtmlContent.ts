@@ -16,13 +16,6 @@ export class HtmlContent {
         if (resolved.includes(this.name)) return this.document;
         resolved.push(this.name);
         this.compiledDocument = this.document;
-        if (options !== undefined) {
-            for (const optionsKey in options) {
-                const optionValue = options[optionsKey];
-                console.log(optionsKey + " : " + optionValue);
-                this.compiledDocument = this.compiledDocument.replace(new RegExp(`\{\{ ${optionsKey} \}\}`, "g"), optionValue);
-            }
-        }
         let additionOption: { [key: string]: string } = {};
         this.compiledDocument = this.compiledDocument.replace(/<script scml>.*<\/script>/s, (source: string): string => {
             const docFuncSource = source
@@ -33,11 +26,16 @@ export class HtmlContent {
             additionOption = docFunc(buildInfo, options ?? {});
             return "";
         });
+        if (options !== undefined) {
+            for (const optionsKey in options) {
+                const optionValue = options[optionsKey];
+                console.log(optionsKey + " : " + optionValue);
+                this.compiledDocument = this.compiledDocument.replace(new RegExp("\\{\\{ " + optionsKey + " \\}\\}", "g"), optionValue);
+            }
+        }
         for (const optionsKey in additionOption) {
-            console.log("k :" +optionsKey);
             const optionValue = additionOption[optionsKey];
-            console.log("v: " + optionValue);
-            this.compiledDocument = this.compiledDocument.replace(new RegExp(`\\[\\[ ${optionsKey} \\]\\]`, "g"), optionValue);
+            this.compiledDocument = this.compiledDocument.replace(new RegExp("\\[\\[ " + optionsKey + " \\]\\]", "g"), optionValue);
         }
         for (const name in components) {
             const component = components[name];

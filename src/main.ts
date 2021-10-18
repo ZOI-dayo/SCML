@@ -29,21 +29,48 @@ const funcList: { [key: string]: Func; } = {
 };
 
 function run(currentPath: string, args: string[]): void {
+    console.log(appMessage);
     if (args.length === 0) {
-        console.log(appMessage);
         return;
     }
     const funcName: string = args[0];
     const functions: string[] = Object.keys(funcList);
     if (functions.includes(funcName)) {
-        console.log(appMessage);
         const func: Func = funcList[funcName];
         func.run(currentPath, args);
         return;
     } else {
-        console.log(notFoundErrMessage(funcName) + appMessage);
+        console.log(notFoundErrMessage(funcName));
         return;
     }
 }
 
-export const onCommand: (currentPath: string, args: string[]) => void = (currentPath: string, args: string[]) => run(currentPath, args);
+export const onCommand: (currentPath: string, args: string[]) => void = (currentPath: string, args: string[]) => run(currentPath, args.slice(2));
+
+export class Logger {
+    private owner: string;
+
+    public constructor(owner: string) {
+        this.owner = owner;
+    }
+
+    public log(message: string): string {
+        const text = `[ ${this.owner} ] ${message}`;
+        console.log(text);
+        return text;
+    }
+
+    public warn(message: string): string {
+        const text = `[ ${colors.yellow(this.owner + " : WARN")} ] ${message}`;
+        console.log(text);
+        return text;
+    }
+
+    public error(message: string): string {
+        const text = `[ ${colors.red(this.owner + " : ERROR")} ] ${message}`;
+        console.log(text);
+        return text;
+    }
+}
+
+export const APP_LOGGER = new Logger("SCML");

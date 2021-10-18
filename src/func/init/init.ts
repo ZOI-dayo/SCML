@@ -17,7 +17,7 @@ export class InitFunc extends Func {
             "static"
         ];
         for (const dirName of dirMap) {
-            const dirPath: string = path.join(currentPath, dirName.replace("/", path.sep));
+            const dirPath: string = path.join(currentPath, dirName?.replace("/", path.sep));
             if (!fs.existsSync(dirPath)) {
                 console.log("creating \"" + dirName + "\" directory...");
                 fs.mkdirSync(dirPath);
@@ -26,6 +26,21 @@ export class InitFunc extends Func {
             }
         }
         const fileMap: { [key: string]: string } = {
+            "scml.json":
+                "{\n" +
+                "  \"plugins\": [\n" +
+                "    {\n" +
+                "      \"name\": \"compile_md_in_pages\",\n" +
+                "      \"srcExtension\": \"md\",\n" +
+                "      \"targetExtension\": \"html\",\n" +
+                "      \"template\": \"assets/templates/md.html\",\n" +
+                "      \"parseText\": \"<!-- mdContent -->\",\n" +
+                "      \"targetText\": \"<Markdown src=\\\"#{PATH}\\\" prefix=\\\"\\\" suffix=\\\"\\\" />\"\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}\n",
+            "assets/templates/md.html":
+                "<!-- mdContent -->\n",
             "components/MyComponent.html":
                 "<header>\n" +
                 "  <span>This is header</span>\n" +
@@ -73,9 +88,10 @@ export class InitFunc extends Func {
                 "",
         };
         for (const fileName in fileMap) {
-            const filePath: string = path.join(currentPath, fileName.replace("/", path.sep));
+            const filePath: string = path.join(currentPath, fileName?.replace("/", path.sep));
             if (!fs.existsSync(filePath)) {
                 console.log("creating \"" + fileName + "\" ...");
+                fs.mkdirSync(path.dirname(filePath), {recursive: true});
                 fs.writeFileSync(filePath, fileMap[fileName], {flag: "wx"});
             } else {
                 console.log("skip \"" + fileName + "\" directory...");

@@ -7,22 +7,37 @@ export class Markdown {
 
     public static getContent(): string {
         return `
-<div class="{{ class }} mdContent">
+{{ prefix }}
 [[ mdContent ]]
-</div>
+{{ suffix }}
 <script scml>
 (buildInfo, options) => {
+    const main = require("@zoi-dayo/scml/dist/main")
     const marked = require("marked");
     const fs = require("fs");
     const path = require("path");
     const rawPath = options["src"];
     
+    if(options["class"] === undefined) options["class"] = "";
+    // if(options["prefix"] === undefined) options["prefix"] = \`<div class="{{ class }} mdContent">\`;
+    if(options["prefix"] === undefined) options["prefix"] = '<div class="' + options["class"] + ' mdContent">';
+    if(options["suffix"] === undefined) options["suffix"] = '</div>';
+    
+    const APP_LOGGER = main.APP_LOGGER;
+    
     if(rawPath === undefined) return {};
-    let assetsPath = rawPath.startsWith("@" + path.sep) ? rawPath.replace("@" + path.sep, "") : rawPath;
-    if(buildInfo.hasOption("lang")) assetsPath = assetsPath.replace(".md", "_" + buildInfo.lang + ".md");
+    let assetsPath = rawPath.startsWith("@" + path.sep) ? rawPath.replace("@" + path.sep, path.join(buildInfo.assetsDir, path.sep)) : rawPath;
+    if(buildInfo.hasOption("lang")) {
+        const langPath = assetsPath.replace(".md", "_" + buildInfo.lang + ".md");
+        if(fs.existsSync(langPath)) {
+            assetsPath = langPath;
+        } else {
+            APP_LOGGER.warn("File " + langPath + " not exist, so use " + assetsPath);
+        }
+    }
     console.log(assetsPath);
     
-    const fileContent = fs.readFileSync(path.join(buildInfo.assetsDir, assetsPath), "utf-8");
+    const fileContent = fs.readFileSync(assetsPath, "utf-8");
     return {
         "mdContent": marked(fileContent),
     };
