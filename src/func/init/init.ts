@@ -93,7 +93,7 @@ export class InitFunc extends Func {
             if (!fs.existsSync(filePath)) {
                 APP_LOGGER.log("creating \"" + fileName + "\" ...");
                 fs.mkdirSync(path.dirname(filePath), {recursive: true});
-                fs.writeFileSync(filePath, fileMap[fileName], {flag: "wx"});
+                fs.writeFileSync(filePath, fileMap[fileName], {flag: "wx", encoding: "utf8"});
             } else {
                 APP_LOGGER.log("skip \"" + fileName + "\" directory...");
             }

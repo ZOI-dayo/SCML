@@ -72,11 +72,11 @@ export class BuildFunc extends Func {
                 // APP_LOGGER.error("releasePath : " + releasePath);
                 tempFiles.push(releasePath);
                 if (!fs.existsSync(path.dirname(releasePath))) fs.mkdirSync(path.dirname(releasePath));
-                fs.writeFileSync(releasePath, compiledDocument);
+                fs.writeFileSync(releasePath, compiledDocument, {encoding: "utf8"});
             });
         });
         const components: { [key: string]: Component } = this.loadComponents(buildInfo.currentDir);
-        const pages: { [key: string]: Page } = this.loadPages(buildInfo.currentDir);
+        const pages: { [key: string]: Page } = BuildFunc.loadPages(buildInfo.currentDir);
         for (const name in pages) {
             const page: Page = pages[name];
             const compiled: string = page.compile(components, buildInfo);
@@ -87,7 +87,7 @@ export class BuildFunc extends Func {
             });
             const filePath = path.join(buildInfo.distDir, name + ".html");
             if (!fs.existsSync(path.dirname(filePath))) fs.mkdirSync(path.dirname(filePath), {recursive: true});
-            fs.writeFileSync(path.join(buildInfo.distDir, name + ".html"), formatted);
+            fs.writeFileSync(path.join(buildInfo.distDir, name + ".html"), formatted, {encoding: "utf8"});
         }
         BuildFunc.getFiles(buildInfo.staticDir, buildInfo.staticDir).forEach(fPath => {
             const distFilePath = path.join(buildInfo.distDir, fPath);
@@ -123,7 +123,7 @@ export class BuildFunc extends Func {
         return components;
     }
 
-    private loadPages(projectPath: string): { [key: string]: Page } {
+    private static loadPages(projectPath: string): { [key: string]: Page } {
         const pagesPath: string = path.join(projectPath, "pages");
         const fileList: string[] = BuildFunc.getFiles(pagesPath, pagesPath);
         const pages: { [key: string]: Page } = {};
