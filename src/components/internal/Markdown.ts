@@ -19,23 +19,22 @@ export class Markdown {
     const rawPath = options["src"];
     
     if(options["class"] === undefined) options["class"] = "";
-    // if(options["prefix"] === undefined) options["prefix"] = \`<div class="{{ class }} mdContent">\`;
     if(options["prefix"] === undefined) options["prefix"] = '<div class="' + options["class"] + ' mdContent">';
     if(options["suffix"] === undefined) options["suffix"] = '</div>';
     
-    const APP_LOGGER = main.APP_LOGGER;
+    // const APP_LOGGER = main.APP_LOGGER;
     
     if(rawPath === undefined) return {};
     let assetsPath = rawPath.startsWith("@" + path.sep) ? rawPath.replace("@" + path.sep, path.join(buildInfo.assetsDir, path.sep)) : rawPath;
-    if(buildInfo.hasOption("lang")) {
-        const langPath = assetsPath.replace(".md", "_" + buildInfo.lang + ".md");
-        if(fs.existsSync(langPath)) {
-            assetsPath = langPath;
-        } else {
-            APP_LOGGER.warn("File " + langPath + " not exist, so use " + assetsPath);
-        }
-    }
-    console.log(assetsPath);
+    // if(buildInfo.hasOption("lang")) {
+    //     const langPath = assetsPath.replace(".md", "_" + buildInfo.lang + ".md");
+    //     if(fs.existsSync(langPath)) {
+    //         assetsPath = langPath;
+    //     } else {
+    //         APP_LOGGER.warn("File " + langPath + " not exist, so use " + assetsPath);
+    //     }
+    // }
+    // console.log(assetsPath);
     
     const fileContent = fs.readFileSync(assetsPath, "utf-8");
     return {

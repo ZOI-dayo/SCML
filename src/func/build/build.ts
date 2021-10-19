@@ -18,15 +18,15 @@ export class BuildFunc extends Func {
     override run(currentPath: string, args: string[]): void {
         const tempFiles: string[] = [];
         const buildInfo = new BuildInfo(currentPath, args, [
-            new CommandOption("lang", "l"), // 対応しているコンポーネントにおいて言語設定を変更できます。
-            new CommandOption("save", "s"), // ファイル出力時にdistディレクトリを削除しません。
-            new CommandOption("out", "o"), // 出力ディレクトリを変更できます。(デフォルトはdist)
+            // new CommandOption("lang", "l"), // 対応しているコンポーネントにおいて言語設定を変更できます。
+            new CommandOption("src", "s"), // ソースディレクトリを変更できます。(デフォルト:pages)
+            new CommandOption("out", "o"), // 出力ディレクトリを変更できます。(デフォルト:dist)
         ]);
-        console.log("initializing dist directory...");
+        APP_LOGGER.log("initializing dist directory...");
         BuildFunc.prepareDir(buildInfo);
-        console.log("initialize finish.");
+        APP_LOGGER.log("initialize finish.");
         buildInfo.getConfig()?.plugins?.forEach(plugin => {
-            const srcFiles: string[] = BuildFunc.getFiles(buildInfo.pagesDir, buildInfo.pagesDir)
+            const srcFiles: string[] = BuildFunc.getFiles(buildInfo.srcDir, buildInfo.srcDir)
                 .filter(p => p.endsWith(plugin.srcExtension));
             const templateFile: string = fs.readFileSync(path.join(buildInfo.currentDir, plugin.template), "utf-8");
             srcFiles.forEach(fPath => {
@@ -35,14 +35,14 @@ export class BuildFunc extends Func {
                 // fs.mkdirSync(path.dirname(path.join(pluginTempPath, fPath)), {recursive: true});
                 // fs.copyFileSync(path.join(buildInfo.pagesDir, fPath), path.join(pluginTempPath, fPath));
 
-                APP_LOGGER.error(plugin.targetText);
-                APP_LOGGER.error(plugin.targetText.match(/#\\{.+?\\}/g)?.toString() ?? "null!!!");
+                // APP_LOGGER.error(plugin.targetText);
+                // APP_LOGGER.error(plugin.targetText.match(/#\\{.+?\\}/g)?.toString() ?? "null!!!");
                 const replaceText = plugin.targetText.replace(/#\{.+?\}/g, match => {
-                    APP_LOGGER.error("match");
+                    // APP_LOGGER.error("match");
                     const script: string = match.slice(2, -1).trim();
                     const rootText: string = script.replace(/(.*?)/g, "").trim();
                     let result = rootText
-                        .replace("PATH", path.join(buildInfo.pagesDir, fPath));
+                        .replace("PATH", path.join(buildInfo.srcDir, fPath));
                     // .replace("SRC_PATH", path.join(pluginTempPath, fPath));
                     const functions: string[][] = [];
                     script.match(/(.*?)/g)?.forEach(func => {
@@ -59,19 +59,19 @@ export class BuildFunc extends Func {
                         }
                     });
                     // ここまで
-                    APP_LOGGER.log(result);
-                    APP_LOGGER.error(result);
+                    // APP_LOGGER.log(result);
+                    // APP_LOGGER.error(result);
                     return result;
                 });
 
                 const compiledDocument: string = templateFile.replace(plugin.parseText, replaceText);
 
-                APP_LOGGER.error("compiledDocument : " + compiledDocument);
-                const releasePath: string = path.join(buildInfo.pagesDir, fPath.slice(0, -1 * plugin.srcExtension.length) + plugin.targetExtension);
+                // APP_LOGGER.error("compiledDocument : " + compiledDocument);
+                const releasePath: string = path.join(buildInfo.srcDir, fPath.slice(0, -1 * plugin.srcExtension.length) + plugin.targetExtension);
 
-                APP_LOGGER.error("releasePath : " + releasePath);
+                // APP_LOGGER.error("releasePath : " + releasePath);
                 tempFiles.push(releasePath);
-                if(!fs.existsSync(path.dirname(releasePath))) fs.mkdirSync(path.dirname(releasePath));
+                if (!fs.existsSync(path.dirname(releasePath))) fs.mkdirSync(path.dirname(releasePath));
                 fs.writeFileSync(releasePath, compiledDocument);
             });
         });
@@ -80,9 +80,6 @@ export class BuildFunc extends Func {
         for (const name in pages) {
             const page: Page = pages[name];
             const compiled: string = page.compile(components, buildInfo);
-
-            console.log("---");
-            console.log("---");
             type PrettierType = { format: (src: string, option: { semi: boolean, parser: string }) => string };
             const formatted: string = (prettier as PrettierType).format(compiled, {
                 semi: false,
@@ -96,7 +93,6 @@ export class BuildFunc extends Func {
             const distFilePath = path.join(buildInfo.distDir, fPath);
             if (!fs.existsSync(path.dirname(distFilePath))) fs.mkdirSync(path.dirname(distFilePath), {recursive: true});
             fs.copyFileSync(path.join(buildInfo.staticDir, fPath), distFilePath);
-            console.log(fPath);
         });
         tempFiles.forEach(f => {
             fs.rmSync(f);
@@ -104,13 +100,11 @@ export class BuildFunc extends Func {
     }
 
     private static prepareDir(buildInfo: BuildInfo): void {
-        if (!buildInfo.save) {
-            if (fs.existsSync(buildInfo.distDir)) {
-                console.log("clearing dist directory...");
-                fs.rmdirSync(buildInfo.distDir, {recursive: true});
-            }
-            fs.mkdirSync(buildInfo.distDir);
+        if (fs.existsSync(buildInfo.distDir)) {
+            APP_LOGGER.log("clearing dist directory...");
+            fs.rmdirSync(buildInfo.distDir, {recursive: true});
         }
+        fs.mkdirSync(buildInfo.distDir);
     }
 
     private loadComponents(projectPath: string): { [key: string]: Component } {
@@ -181,20 +175,16 @@ export class BuildInfo {
         return path.join(this.currentDir, "assets");
     }
 
-    public get pagesDir(): string {
-        return path.join(this.currentDir, "pages");
+    public get srcDir(): string {
+        return path.join(this.currentDir, this.src);
     }
 
     public get tempDir(): string {
         return path.join(this.currentDir, ".temp", "scml");
     }
 
-    public get lang(): string {
-        return this.options.filter(option => option.name === "lang")[0]?.getValues()[0] ?? "";
-    }
-
-    public get save(): boolean {
-        return this.options.filter(option => option.name === "save")[0]?.getExist();
+    public get src(): string {
+        return this.options.filter(option => option.name === "src")[0]?.getValues()[0] ?? "pages";
     }
 
     public hasOption(optionName: string): boolean {

@@ -17,19 +17,13 @@ const appMessage: string =
     "    +-------------------------------------+\n" +
     "\n";
 
-const notFoundErrMessage: (name: string) => string = (name: string) => {
-    return "\n" +
-        "[" + colors.red("ERROR") + "]: \"" + name + "\" not found\n" +
-        "\n";
-};
-
 const funcList: { [key: string]: Func; } = {
     "init": InitFunc._instance,
     "build": BuildFunc._instance,
 };
 
 function run(currentPath: string, args: string[]): void {
-    console.log(appMessage);
+    APP_LOGGER.print(appMessage);
     if (args.length === 0) {
         return;
     }
@@ -40,7 +34,7 @@ function run(currentPath: string, args: string[]): void {
         func.run(currentPath, args);
         return;
     } else {
-        console.log(notFoundErrMessage(funcName));
+        new OptionNotFoundError(funcName).throw();
         return;
     }
 }
@@ -48,10 +42,15 @@ function run(currentPath: string, args: string[]): void {
 export const onCommand: (currentPath: string, args: string[]) => void = (currentPath: string, args: string[]) => run(currentPath, args.slice(2));
 
 export class Logger {
-    private owner: string;
+    private readonly owner: string;
 
     public constructor(owner: string) {
         this.owner = owner;
+    }
+
+    public print(message: string): string {
+        console.log(message);
+        return message;
     }
 
     public log(message: string): string {
@@ -70,6 +69,29 @@ export class Logger {
         const text = `[ ${colors.red(this.owner + " : ERROR")} ] ${message}`;
         console.log(text);
         return text;
+    }
+}
+
+export abstract class Exception {
+    private readonly message: string;
+    protected constructor(message: string) {
+        this.message = message;
+    }
+
+    public throw(): void {
+        APP_LOGGER.error(this.message);
+    }
+}
+
+export class FileNotFoundError extends Exception {
+    constructor(fileName: string) {
+        super(`File ${fileName} not found.`);
+    }
+}
+
+export class OptionNotFoundError extends Exception {
+    constructor(optionName: string) {
+        super(`Option ${optionName} not found.`);
     }
 }
 

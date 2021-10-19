@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import {Func} from "../func";
+import {APP_LOGGER} from "../../main";
 
 export class InitFunc extends Func {
     public static _instance: InitFunc = new InitFunc();
@@ -19,10 +20,10 @@ export class InitFunc extends Func {
         for (const dirName of dirMap) {
             const dirPath: string = path.join(currentPath, dirName?.replace("/", path.sep));
             if (!fs.existsSync(dirPath)) {
-                console.log("creating \"" + dirName + "\" directory...");
+                APP_LOGGER.log("creating \"" + dirName + "\" directory...");
                 fs.mkdirSync(dirPath);
             } else {
-                console.log("skip \"" + dirName + "\" directory...");
+                APP_LOGGER.log("skip \"" + dirName + "\" directory...");
             }
         }
         const fileMap: { [key: string]: string } = {
@@ -57,46 +58,46 @@ export class InitFunc extends Func {
                 "  <Markdown src=\"@/test.md\" />\n" +
                 "</div>\n",
             "assets/test.md":
-                "paragraph 1" +
-                "" +
-                "paragraph 2" +
-                "" +
-                "*strong*" +
-                "**STRONG**" +
-                "" +
-                "`inline code`" +
-                "```" +
-                "block code" +
-                "```" +
-                "" +
-                "- list 1" +
-                "    - item 1" +
-                "    - item 2" +
-                "" +
-                "1. list 2 (item 1)" +
-                "2. list 2 (item 2)" +
-                "" +
-                "# heading 1" +
-                "## heading 2" +
-                "### heading 3" +
-                "#### heading 4" +
-                "" +
-                "> \"blockQuote" +
-                "you can break line\"" +
-                "" +
-                "---" +
-                "",
+                "paragraph 1\n" +
+                "\n" +
+                "paragraph 2\n" +
+                "\n" +
+                "*strong*\n" +
+                "**STRONG**\n" +
+                "\n" +
+                "`inline code`\n" +
+                "```\n" +
+                "block code\n" +
+                "```\n" +
+                "\n" +
+                "- list 1\n" +
+                "    - item 1\n" +
+                "    - item 2\n" +
+                "\n" +
+                "1. list 2 (item 1)\n" +
+                "2. list 2 (item 2)\n" +
+                "\n" +
+                "# heading 1\n" +
+                "## heading 2\n" +
+                "### heading 3\n" +
+                "#### heading 4\n" +
+                "\n" +
+                "> \"blockQuote\n" +
+                "you can break line\"\n" +
+                "\n" +
+                "---\n" +
+                "\n",
         };
         for (const fileName in fileMap) {
             const filePath: string = path.join(currentPath, fileName?.replace("/", path.sep));
             if (!fs.existsSync(filePath)) {
-                console.log("creating \"" + fileName + "\" ...");
+                APP_LOGGER.log("creating \"" + fileName + "\" ...");
                 fs.mkdirSync(path.dirname(filePath), {recursive: true});
                 fs.writeFileSync(filePath, fileMap[fileName], {flag: "wx"});
             } else {
-                console.log("skip \"" + fileName + "\" directory...");
+                APP_LOGGER.log("skip \"" + fileName + "\" directory...");
             }
         }
-        console.log("finished.");
+        APP_LOGGER.log("finished.");
     }
 }
