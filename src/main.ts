@@ -2,6 +2,8 @@ import colors from "colors";
 import {InitFunc} from "./func/init/init";
 import {BuildFunc} from "./func/build/build";
 import {Func} from "./func/func";
+import {DevFunc} from "./func/dev/dev";
+import {Exception} from "./class/Exception";
 
 const appMessage: string =
     "\n" +
@@ -13,6 +15,7 @@ const appMessage: string =
     "    |     `$ npx scml init`               |\n" +
     "    | # Build files                       |\n" +
     "    |     `$ npx scml build`              |\n" +
+    "    | # Run development server            |\n" +
     "    |                                     |\n" +
     "    +-------------------------------------+\n" +
     "\n";
@@ -20,6 +23,7 @@ const appMessage: string =
 const funcList: { [key: string]: Func; } = {
     "init": InitFunc._instance,
     "build": BuildFunc._instance,
+    "dev": DevFunc._instance,
 };
 
 function run(currentPath: string, args: string[]): void {
@@ -69,17 +73,6 @@ export class Logger {
         const text = `[ ${colors.red(this.owner + " : ERROR")} ] ${message}`;
         console.log(text);
         return text;
-    }
-}
-
-export abstract class Exception {
-    private readonly message: string;
-    protected constructor(message: string) {
-        this.message = message;
-    }
-
-    public throw(): void {
-        APP_LOGGER.error(this.message);
     }
 }
 

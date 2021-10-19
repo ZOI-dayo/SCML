@@ -10,6 +10,11 @@ import {APP_LOGGER} from "../../main";
 
 export class BuildFunc extends Func {
     public static _instance: BuildFunc = new BuildFunc();
+    public static commandOptions: CommandOption[] = [
+        // new CommandOption("lang", "l"), // 対応しているコンポーネントにおいて言語設定を変更できます。
+        new CommandOption("src", "s"), // ソースディレクトリを変更できます。(デフォルト:pages)
+        new CommandOption("out", "o"), // 出力ディレクトリを変更できます。(デフォルト:dist)
+    ];
 
     private constructor() {
         super("build");
@@ -17,11 +22,7 @@ export class BuildFunc extends Func {
 
     override run(currentPath: string, args: string[]): void {
         const tempFiles: string[] = [];
-        const buildInfo = new BuildInfo(currentPath, args, [
-            // new CommandOption("lang", "l"), // 対応しているコンポーネントにおいて言語設定を変更できます。
-            new CommandOption("src", "s"), // ソースディレクトリを変更できます。(デフォルト:pages)
-            new CommandOption("out", "o"), // 出力ディレクトリを変更できます。(デフォルト:dist)
-        ]);
+        const buildInfo = new BuildInfo(currentPath, args, BuildFunc.commandOptions);
         APP_LOGGER.log("initializing dist directory...");
         BuildFunc.prepareDir(buildInfo);
         APP_LOGGER.log("initialize finish.");
@@ -158,7 +159,17 @@ export class BuildInfo {
     public readonly currentDir: string;
     public readonly args: string[];
     public readonly config: ConfigFileFormat | undefined;
-    public readonly options: CommandOption[];
+    public readonly command: Command;
+
+    constructor(currentDir: string, args: string[], options: CommandOption[]) {
+        this.currentDir = currentDir;
+        this.args = args;
+        const configPath = path.join(currentDir, "scml.json");
+        if (fs.existsSync(configPath)) {
+            this.config = JSON.parse(fs.readFileSync(configPath, "utf-8")) as ConfigFileFormat;
+        }
+        this.command = new Command(args, options);
+    }
 
     public get staticDir(): string {
         return path.join(this.currentDir, "static");
@@ -167,7 +178,7 @@ export class BuildInfo {
     public get distDir(): string {
         return path.join(
             this.currentDir,
-            this.options.filter(option => option.name === "out")[0]?.getValues()[0] ?? "dist"
+            this.command.options.filter(option => option.name === "out")[0]?.getValues()[0] ?? "dist"
         );
     }
 
@@ -184,21 +195,23 @@ export class BuildInfo {
     }
 
     public get src(): string {
-        return this.options.filter(option => option.name === "src")[0]?.getValues()[0] ?? "pages";
+        return this.command.options.filter(option => option.name === "src")[0]?.getValues()[0] ?? "pages";
     }
 
     public hasOption(optionName: string): boolean {
-        return this.options.filter(option => option.name === optionName || option.shortName === optionName).filter(option => option.getExist()).length > 0;
+        return this.command.options.filter(option => option.name === optionName || option.shortName === optionName).filter(option => option.getExist()).length > 0;
     }
 
     public getConfig(): ConfigFileFormat | undefined {
         return this.config;
     }
+}
 
-    constructor(currentDir: string, args: string[], options: CommandOption[]) {
-        this.currentDir = currentDir;
-        this.args = args;
-        this.options = options;
+export class Command {
+    public readonly options: CommandOption[];
+
+    constructor(args: string[], options: CommandOption[]) {
+        const tempOptions: CommandOption[] = options;
         let compilingOptionIndex = -1;
         for (const arg of args) {
             if (arg.startsWith("-")) {
@@ -208,7 +221,7 @@ export class BuildInfo {
                     hyphenCounter++;
                     optionName = optionName.slice(1);
                 }
-                options.filter(option => {
+                tempOptions.filter(option => {
                     if (hyphenCounter === 1) {
                         return option.shortName === optionName;
                     } else if (hyphenCounter === 2) {
@@ -216,7 +229,7 @@ export class BuildInfo {
                     }
                 }).forEach(option => {
                     option.setExist(true);
-                    compilingOptionIndex = options.indexOf(option);
+                    compilingOptionIndex = tempOptions.indexOf(option);
                 });
             } else {
                 if (compilingOptionIndex < 0) continue;
@@ -224,10 +237,7 @@ export class BuildInfo {
                 option.addValue(arg);
             }
         }
-        const configPath = path.join(currentDir, "scml.json");
-        if (fs.existsSync(configPath)) {
-            this.config = JSON.parse(fs.readFileSync(configPath, "utf-8")) as ConfigFileFormat;
-        }
+        this.options = tempOptions.filter(option => option.getExist());
     }
 }
 
