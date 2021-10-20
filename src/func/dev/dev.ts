@@ -18,13 +18,18 @@ export class DevFunc extends Func {
             new CommandOption("port", "p"), // Webサーバーに割り当てるポート番号を指定できます。(デフォルト:8080)
         ]);
         const server: Server = new Server(devInfo.buildInfo.distDir, devInfo.port);
-        const watcher: fs.FSWatcher = fs.watch(devInfo.buildInfo.srcDir, (/*event: "rename" | "change", filename: string*/) => {
+        const onChange: () => void = () => {
             build();
             server.logger.log("Reloaded.");
-        });
+        };
+        const watcher: fs.FSWatcher[] = [];
+        watcher.push(fs.watch(devInfo.buildInfo.srcDir, onChange));
+        watcher.push(fs.watch(devInfo.buildInfo.staticDir, onChange));
+        watcher.push(fs.watch(devInfo.buildInfo.assetsDir, onChange));
+        watcher.push(fs.watch(devInfo.buildInfo.componentsDir, onChange));
         process.on("SIGINT", function () {
             server.stop();
-            watcher.close();
+            watcher.forEach(w => w.close());
             process.exit();
         });
         server.start();

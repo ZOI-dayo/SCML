@@ -194,6 +194,10 @@ export class BuildInfo {
         return path.join(this.currentDir, ".temp", "scml");
     }
 
+    public get componentsDir(): string {
+        return path.join(this.currentDir, "components");
+    }
+
     public get src(): string {
         return this.command.options.filter(option => option.name === "src")[0]?.getValues()[0] ?? "pages";
     }
