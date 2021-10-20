@@ -25,3 +25,10 @@ Simple Component Markup Language
     - out
         `--src <path>` | `-s <path>`
         `<path>`: ビルドの出力パス<br>デフォルト値: `pages`
+- 開発サーバーの起動<br>
+  `$ npx @zoi-dayo/scml dev`
+  ### Options
+    - port
+      `--port <port>` | `-p <port>`
+      `<port>`: サーバーで利用するポート番号<br>デフォルト値: `8080`
+    - `build`コマンドで利用可能な全てのオプション

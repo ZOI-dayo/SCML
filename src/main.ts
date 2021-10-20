@@ -12,10 +12,11 @@ const appMessage: string =
     "    |  Simple Component Markup Language   |\n" +
     "    |                                     |\n" +
     "    | # Init project                      |\n" +
-    "    |     `$ npx scml init`               |\n" +
+    "    |     `$ npx @zoi-dayo/scml init`     |\n" +
     "    | # Build files                       |\n" +
-    "    |     `$ npx scml build`              |\n" +
+    "    |     `$ npx @zoi-dayo/scml build`    |\n" +
     "    | # Run development server            |\n" +
+    "    |     `$ npx @zoi-dayo/scml dev`      |\n" +
     "    |                                     |\n" +
     "    +-------------------------------------+\n" +
     "\n";
