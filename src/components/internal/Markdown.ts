@@ -25,7 +25,7 @@ export class Markdown {
     // const APP_LOGGER = main.APP_LOGGER;
     
     if(rawPath === undefined) return {};
-    let assetsPath = rawPath.startsWith("@" + path.sep) ? rawPath.replace("@" + path.sep, path.join(buildInfo.assetsDir, path.sep)) : rawPath;
+    let assetsPath = rawPath.startsWith("@/") ? rawPath.replace("@", buildInfo.assetsDir).replace("/", path.sep) : rawPath.replace("/", path.sep);
     // if(buildInfo.hasOption("lang")) {
     //     const langPath = assetsPath.replace(".md", "_" + buildInfo.lang + ".md");
     //     if(fs.existsSync(langPath)) {
