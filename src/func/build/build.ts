@@ -8,6 +8,7 @@ import {InternalComponentsLoader} from "../../components/InternalComponentsLoade
 import {CommandOption} from "../../command/CommandOption";
 import {APP_LOGGER} from "../../main";
 
+// noinspection RegExpRedundantEscape
 export class BuildFunc extends Func {
     public static _instance: BuildFunc = new BuildFunc();
     public static commandOptions: CommandOption[] = [
@@ -76,7 +77,7 @@ export class BuildFunc extends Func {
                 fs.writeFileSync(releasePath, compiledDocument, {encoding: "utf8"});
             });
         });
-        const components: { [key: string]: Component } = this.loadComponents(buildInfo.currentDir);
+        const components: Component[] = this.loadComponents(buildInfo.currentDir);
         const pages: { [key: string]: Page } = BuildFunc.loadPages(buildInfo.currentDir);
         for (const name in pages) {
             const page: Page = pages[name];
@@ -108,18 +109,18 @@ export class BuildFunc extends Func {
         fs.mkdirSync(buildInfo.distDir);
     }
 
-    private loadComponents(projectPath: string): { [key: string]: Component } {
+    private loadComponents(projectPath: string): Component[] {
         const componentsPath: string = path.join(projectPath, "components");
 
         const fileList: string[] = BuildFunc.getFiles(componentsPath, componentsPath);
-        const components: { [key: string]: Component } = {};
+        const components: Component[] = [];
         const pluginComponents: Component[] = InternalComponentsLoader.load();
-        pluginComponents.forEach(pComp => components[pComp.name] = pComp);
+        pluginComponents.forEach(pComp => components.push(pComp));
 
         fileList.forEach(fName => {
             const content: string = fs.readFileSync(path.join(componentsPath, fName), "utf-8");
             const name: string = path.basename(fName, path.extname(fName));
-            components[name] = new Component(name, content);
+            components.push(new Component(name, content));
         });
         return components;
     }
