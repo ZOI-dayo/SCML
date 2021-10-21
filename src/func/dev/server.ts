@@ -6,8 +6,8 @@ import {Logger} from "../../main";
 import {Exception} from "../../class/Exception";
 
 export class Server {
-    private src: string;
-    private port: number;
+    private readonly src: string;
+    private readonly port: number;
     private server: http.Server;
     public logger: Logger;
 
@@ -20,6 +20,7 @@ export class Server {
             if (filePath.endsWith("/")) {
                 filePath += "index.html";
             }
+            if(req.url === "") filePath += "/index.html";
             const extname = String(path.extname(filePath)).toLowerCase();
             const mimeTypes: { [key: string]: string } = {
                 ".html": "text/html",
