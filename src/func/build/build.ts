@@ -44,7 +44,7 @@ export class BuildFunc extends Func {
                     const script: string = match.slice(2, -1).trim();
                     const rootText: string = script.replace(/(.*?)/g, "").trim();
                     let result = rootText
-                        .replace("PATH", path.join(buildInfo.srcDir, fPath));
+                        .replace("PATH", path.join(buildInfo.tempDir, fPath));
                     // .replace("SRC_PATH", path.join(pluginTempPath, fPath));
                     const functions: string[][] = [];
                     script.match(/(.*?)/g)?.forEach(func => {
@@ -69,7 +69,7 @@ export class BuildFunc extends Func {
                 const compiledDocument: string = templateFile.replace(plugin.parseText, replaceText);
 
                 // APP_LOGGER.error("compiledDocument : " + compiledDocument);
-                const releasePath: string = path.join(buildInfo.srcDir, fPath.slice(0, -1 * plugin.srcExtension.length) + plugin.targetExtension);
+                const releasePath: string = path.join(buildInfo.tempDir, fPath.slice(0, -1 * plugin.srcExtension.length) + plugin.targetExtension);
 
                 // APP_LOGGER.error("releasePath : " + releasePath);
                 tempFiles.push(releasePath);
@@ -78,7 +78,10 @@ export class BuildFunc extends Func {
             });
         });
         const components: Component[] = this.loadComponents(buildInfo.currentDir);
-        const pages: { [key: string]: Page } = BuildFunc.loadPages(buildInfo.currentDir);
+        BuildFunc.getFiles(buildInfo.srcDir, buildInfo.srcDir).forEach(fPath => {
+            fs.copyFileSync(path.join(buildInfo.srcDir, fPath), path.join(buildInfo.tempDir, fPath));
+        });
+        const pages: { [key: string]: Page } = BuildFunc.loadPagesFromTemp(buildInfo);
         for (const name in pages) {
             const page: Page = pages[name];
             const compiled: string = page.compile(components, buildInfo);
@@ -107,6 +110,7 @@ export class BuildFunc extends Func {
             fs.rmdirSync(buildInfo.distDir, {recursive: true});
         }
         fs.mkdirSync(buildInfo.distDir);
+        fs.mkdirSync(buildInfo.tempDir, {recursive: true});
     }
 
     private loadComponents(projectPath: string): Component[] {
@@ -125,13 +129,14 @@ export class BuildFunc extends Func {
         return components;
     }
 
-    private static loadPages(projectPath: string): { [key: string]: Page } {
-        const pagesPath: string = path.join(projectPath, "pages");
-        const fileList: string[] = BuildFunc.getFiles(pagesPath, pagesPath);
+    private static loadPagesFromTemp(buildInfo: BuildInfo): { [key: string]: Page } {
+        const tempPath: string = buildInfo.tempDir;
+        console.log(fs);
+        const fileList: string[] = BuildFunc.getFiles(tempPath, tempPath);
         const pages: { [key: string]: Page } = {};
         for (const fName of fileList) {
             if (!fName.endsWith(".html")) continue;
-            const content: string = fs.readFileSync(path.join(pagesPath, fName), "utf-8");
+            const content: string = fs.readFileSync(path.join(tempPath, fName), "utf-8");
             const name: string = path.join(path.dirname(fName), path.basename(fName, path.extname(fName)));
             pages[name] = new Page(name, content);
         }
