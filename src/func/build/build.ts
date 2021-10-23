@@ -102,6 +102,7 @@ export class BuildFunc extends Func {
         tempFiles.forEach(f => {
             fs.rmSync(f);
         });
+        fs.rmdirSync(buildInfo.tempDir, {recursive: true});
     }
 
     private static prepareDir(buildInfo: BuildInfo): void {
