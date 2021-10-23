@@ -131,7 +131,6 @@ export class BuildFunc extends Func {
 
     private static loadPagesFromTemp(buildInfo: BuildInfo): { [key: string]: Page } {
         const tempPath: string = buildInfo.tempDir;
-        console.log(fs);
         const fileList: string[] = BuildFunc.getFiles(tempPath, tempPath);
         const pages: { [key: string]: Page } = {};
         for (const fName of fileList) {
@@ -152,6 +151,22 @@ export class BuildFunc extends Func {
             if (elStat.isFile()) allFiles.push(path.relative(rootPath, elPath));
             else if (elStat.isDirectory()) {
                 const innerFiles: string[] = BuildFunc.getFiles(rootPath, elPath);
+                innerFiles.forEach(file => {
+                    allFiles.push(file);
+                });
+            }
+        });
+        return allFiles;
+    }
+    public static getFolders(rootPath: string, searchPath: string): string[] {
+        const allFiles: string[] = [];
+        const dirElements: string[] = fs.readdirSync(searchPath);
+        dirElements.forEach((el) => {
+            const elPath: string = path.join(searchPath, el);
+            const elStat: fs.Stats = fs.statSync(elPath);
+            if (elStat.isDirectory()) {
+                allFiles.push(path.relative(rootPath, elPath));
+                const innerFiles: string[] = BuildFunc.getFolders(rootPath, elPath);
                 innerFiles.forEach(file => {
                     allFiles.push(file);
                 });

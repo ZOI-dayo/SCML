@@ -3,6 +3,7 @@ import fs from "fs";
 import {CommandOption} from "../../command/CommandOption";
 import {BuildFunc, BuildInfo, Command} from "../build/build";
 import {Server} from "./server";
+import path from "path";
 
 export class DevFunc extends Func {
     public static _instance: DevFunc = new DevFunc();
@@ -23,10 +24,17 @@ export class DevFunc extends Func {
             server.logger.log("Reloaded.");
         };
         const watcher: fs.FSWatcher[] = [];
-        watcher.push(fs.watch(devInfo.buildInfo.srcDir, onChange));
-        watcher.push(fs.watch(devInfo.buildInfo.staticDir, onChange));
-        watcher.push(fs.watch(devInfo.buildInfo.assetsDir, onChange));
-        watcher.push(fs.watch(devInfo.buildInfo.componentsDir, onChange));
+        [
+            devInfo.buildInfo.srcDir,
+            devInfo.buildInfo.staticDir,
+            devInfo.buildInfo.assetsDir,
+            devInfo.buildInfo.componentsDir
+        ].forEach(fPath => {
+            BuildFunc.getFolders(fPath, fPath).forEach(p => {
+                console.log(p);
+                watcher.push(fs.watch(path.join(fPath, p), onChange));
+            });
+        });
         process.on("SIGINT", function () {
             server.stop();
             watcher.forEach(w => w.close());
