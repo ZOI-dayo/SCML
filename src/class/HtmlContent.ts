@@ -25,17 +25,23 @@ export class HtmlContent {
             additionOption = docFunc(buildInfo, options ?? {});
             return "";
         });
-        if (options !== undefined) {
-            for (const optionsKey in options) {
-                const optionValue = options[optionsKey];
-                console.log(optionsKey + " : " + optionValue);
-                this.compiledDocument = this.compiledDocument.replace(new RegExp("\\{\\{ " + optionsKey + " \\}\\}", "g"), optionValue);
-            }
-        }
-        for (const optionsKey in additionOption) {
-            const optionValue = additionOption[optionsKey];
-            this.compiledDocument = this.compiledDocument.replace(new RegExp("\\[\\[ " + optionsKey + " \\]\\]", "g"), optionValue);
-        }
+        this.compiledDocument = this.compiledDocument.replace(new RegExp("\\{\\{.*?\\}\\}", "g"), (content: string): string => {
+            const tagName = content
+                .replace("{{", "")
+                .replace("}}", "")
+                .trim();
+            console.log(content + " : " + tagName);
+            return options[tagName] ?? "";
+        });
+        this.compiledDocument = this.compiledDocument.replace(new RegExp("\\[\\[.*?\\]\\]", "g"), (content: string): string => {
+            const tagName = content
+                .replace("[[", "")
+                .replace("]]", "")
+                .trim();
+            console.log(content + " : " + tagName);
+            console.log(additionOption[tagName]);
+            return additionOption[tagName] ?? "";
+        });
         for (const component of components) {
             const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "g");
             // const tagPattern = /< *MyComponent(.*?)\/>/g;
@@ -63,7 +69,7 @@ export class HtmlContent {
             .filter(str => {
                 return str.search(/([^a-zA-Z0-9_-])+/) === -1;
             }).forEach(str => options[str] = "");
-        if(srcName === component.name) return "";
+        if (srcName === component.name) return "";
         return component.compile(components, buildInfo, options);
     }
 }
