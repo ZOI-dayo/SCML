@@ -30,8 +30,8 @@ export class DevFunc extends Func {
             devInfo.buildInfo.assetsDir,
             devInfo.buildInfo.componentsDir
         ].forEach(fPath => {
+            watcher.push(fs.watch(fPath, onChange));
             BuildFunc.getFolders(fPath, fPath).forEach(p => {
-                console.log(p);
                 watcher.push(fs.watch(path.join(fPath, p), onChange));
             });
         });
