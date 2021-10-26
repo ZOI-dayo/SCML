@@ -24,11 +24,13 @@
   "dependencies": {
     "colors": "^1.4.0",
     "marked": "^3.0.7",
-    "prettier": "^2.4.1"
+    "prettier": "^2.4.1",
+    "sass": "^1.43.3"
   },
   "devDependencies": {
     "@types/node": "^16.10.4",
     "@types/prettier": "^2.4.1",
+    "@types/sass": "^1.16.1",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.1",

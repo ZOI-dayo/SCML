@@ -1,11 +1,13 @@
 import {Component} from "./HtmlContent/Component";
 import {BuildInfo} from "../func/build/build";
+import sass from "sass";
 
 // noinspection HtmlUnknownAttribute
 export class HtmlContent {
     public readonly name: string;
     protected readonly document: string;
     protected compiledDocument: string;
+    protected style = "";
 
     public constructor(name: string, content: string) {
         this.name = name;
@@ -15,6 +17,10 @@ export class HtmlContent {
 
     protected compile(components: Component[], buildInfo: BuildInfo, options: { [key: string]: string }): string {
         this.compiledDocument = this.document;
+        this.compiledDocument.match(/<style.*?>.*?<\/style>/gs)?.forEach(tag => {
+                this.style += HtmlContent.compileStyle(tag);
+            }
+        );
         let additionOption: { [key: string]: string } = {};
         this.compiledDocument = this.compiledDocument.replace(/<script scml>.*<\/script>/s, (source: string): string => {
             const docFuncSource = source
@@ -30,7 +36,6 @@ export class HtmlContent {
                 .replace("{{", "")
                 .replace("}}", "")
                 .trim();
-            console.log(content + " : " + tagName);
             return options[tagName] ?? "";
         });
         this.compiledDocument = this.compiledDocument.replace(new RegExp("\\[\\[.*?\\]\\]", "g"), (content: string): string => {
@@ -38,8 +43,6 @@ export class HtmlContent {
                 .replace("[[", "")
                 .replace("]]", "")
                 .trim();
-            console.log(content + " : " + tagName);
-            console.log(additionOption[tagName]);
             return additionOption[tagName] ?? "";
         });
         for (const component of components) {
@@ -71,5 +74,37 @@ export class HtmlContent {
             }).forEach(str => options[str] = "");
         if (srcName === component.name) return "";
         return component.compile(components, buildInfo, options);
+    }
+
+    private static compileStyle(styleTag: string): string {
+        const options: { [key: string]: string } = {};
+        const styleContent = styleTag
+            .replace(/<style.*?>/s, "")
+            .replace("</style>", "")
+            .trim();
+        const headTag: string = styleTag.match(/<style.*?>/s)?.[0] ?? "";
+        headTag.replace("<style", "")
+            .replace(">", "")
+            .trim()
+            .split(" ")
+            .forEach((tagPair: string) => {
+                const pair = tagPair.trim();
+                if (pair.indexOf("=") < 0) {
+                    options[pair] = "";
+                } else {
+                    const psl = pair.split("=");
+                    const key = psl[0];
+                    options[key] = psl[1].replace(/"/g, "");
+                }
+            });
+        const lang = options["lang"];
+        switch (lang) {
+            case "sass":
+                console.log(sass.renderSync({data: styleContent, outputStyle: "compressed"}).css.toString());
+                return sass.renderSync({data: styleContent, outputStyle: "compressed"}).css.toString();
+            case undefined:
+            default:
+                return styleContent;
+        }
     }
 }
