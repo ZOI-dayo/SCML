@@ -8,14 +8,20 @@ export class HtmlContent {
     public readonly name: string;
     protected readonly document: string;
     protected compiledDocument: string;
+    private type: string;
 
-    public constructor(name: string, content: string) {
+    public constructor(name: string, content: string, type: string) {
         this.name = name;
         this.document = content;
+        this.type = type;
         this.compiledDocument = this.document;
     }
 
     protected compile(components: Component[], buildInfo: BuildInfo, root: Page, options: { [key: string]: string }): string {
+        let isFirstLoaded = false;
+        if (this.type === "component") {
+            isFirstLoaded = root.importContent(this.name);
+        }
         this.compiledDocument = this.document;
         let additionOption: { [key: string]: string } = {};
         this.compiledDocument = this.compiledDocument.replace(/<script scml>.*<\/script>/s, (source: string): string => {
@@ -48,12 +54,14 @@ export class HtmlContent {
                 return HtmlContent.compileFromTag(components, buildInfo, component, match, this.name, root);
             });
         }
-        let style = "";
         this.compiledDocument = this.compiledDocument.replace(/<style.*?>.*?<\/style>/gs, (tag: string) => {
-            style += HtmlContent.compileStyle(tag);
+            if (this.type === "page") {
+                root.setPageStyle(HtmlContent.compileStyle(tag));
+            } else if (this.type === "component" && isFirstLoaded) {
+                root.addComponentStyle(HtmlContent.compileStyle(tag));
+            }
             return "";
         });
-        root.addStyle(style);
         // APP_LOGGER.error("    " + this.compiledDocument);
         return this.compiledDocument;
     }
