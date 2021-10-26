@@ -1,6 +1,6 @@
 {
   "name": "@zoi-dayo/scml",
-  "version": "1.1.7",
+  "version": "1.2.0",
   "description": "Simple Component Markup Language",
   "main": "dist/main.js",
   "types": "dist/index.d.ts",
