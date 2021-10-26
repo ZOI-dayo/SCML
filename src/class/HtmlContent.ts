@@ -1,13 +1,13 @@
 import {Component} from "./HtmlContent/Component";
 import {BuildInfo} from "../func/build/build";
 import sass from "sass";
+import {Page} from "./HtmlContent/Page";
 
 // noinspection HtmlUnknownAttribute
 export class HtmlContent {
     public readonly name: string;
     protected readonly document: string;
     protected compiledDocument: string;
-    protected style = "";
 
     public constructor(name: string, content: string) {
         this.name = name;
@@ -15,12 +15,8 @@ export class HtmlContent {
         this.compiledDocument = this.document;
     }
 
-    protected compile(components: Component[], buildInfo: BuildInfo, options: { [key: string]: string }): string {
+    protected compile(components: Component[], buildInfo: BuildInfo, root: Page, options: { [key: string]: string }): string {
         this.compiledDocument = this.document;
-        this.compiledDocument.match(/<style.*?>.*?<\/style>/gs)?.forEach(tag => {
-                this.style += HtmlContent.compileStyle(tag);
-            }
-        );
         let additionOption: { [key: string]: string } = {};
         this.compiledDocument = this.compiledDocument.replace(/<script scml>.*<\/script>/s, (source: string): string => {
             const docFuncSource = source
@@ -49,14 +45,20 @@ export class HtmlContent {
             const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "g");
             // const tagPattern = /< *MyComponent(.*?)\/>/g;
             this.compiledDocument = this.compiledDocument.replace(tagPattern, (match: string): string => {
-                return HtmlContent.compileFromTag(components, buildInfo, component, match, this.name);
+                return HtmlContent.compileFromTag(components, buildInfo, component, match, this.name, root);
             });
         }
+        let style = "";
+        this.compiledDocument = this.compiledDocument.replace(/<style.*?>.*?<\/style>/gs, (tag: string) => {
+            style += HtmlContent.compileStyle(tag);
+            return "";
+        });
+        root.addStyle(style);
         // APP_LOGGER.error("    " + this.compiledDocument);
         return this.compiledDocument;
     }
 
-    private static compileFromTag(components: Component[], buildInfo: BuildInfo, component: Component, tag: string, srcName: string): string {
+    private static compileFromTag(components: Component[], buildInfo: BuildInfo, component: Component, tag: string, srcName: string, page: Page): string {
         const options: { [key: string]: string } = {};
         const keyValueOptionPattern = new RegExp("\\S+((=\".*?\")|[^\\s\\S])", "g");
         // const simpleOptionPattern = new RegExp("\\S*=\"\\S*\"", "g");
@@ -73,7 +75,7 @@ export class HtmlContent {
                 return str.search(/([^a-zA-Z0-9_-])+/) === -1;
             }).forEach(str => options[str] = "");
         if (srcName === component.name) return "";
-        return component.compile(components, buildInfo, options);
+        return component.compile(components, buildInfo, page, options);
     }
 
     private static compileStyle(styleTag: string): string {
