@@ -28,6 +28,21 @@ export class Server {
                 ".css": "text/css",
                 ".png": "image/png",
                 ".jpg": "image/jpg",
+                ".svg": "image/svg+xml",
+                ".ico": "image/x-icon",
+                ".json": "application/json",
+                ".pdf": "application/pdf",
+                ".zip": "application/zip",
+                ".mp3": "audio/mpeg",
+                ".mp4": "video/mp4",
+                ".wav": "audio/wav",
+                ".woff": "application/font-woff",
+                ".woff2": "application/font-woff2",
+                ".ttf": "application/font-ttf",
+                ".eot": "application/vnd.ms-fontobject",
+                ".otf": "application/font-otf",
+                ".ttc": "application/font-ttf",
+                ".otc": "application/font-otf",
             };
 
             const contentType = mimeTypes[extname] || "application/octet-stream";
