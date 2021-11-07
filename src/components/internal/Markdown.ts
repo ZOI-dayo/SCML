@@ -37,6 +37,13 @@ export class Markdown {
     // console.log(assetsPath);
     
     const fileContent = fs.readFileSync(assetsPath, "utf-8");
+    
+    marked.Renderer.prototype.paragraph = (text) => {
+        if (text.startsWith("<")) {
+            return text;
+        }
+        return "<p>" + text + "</p>";
+    };
     return {
         "mdContent": marked(fileContent),
     };
