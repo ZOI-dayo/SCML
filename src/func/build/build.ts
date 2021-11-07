@@ -39,16 +39,16 @@ export class BuildFunc extends Func {
 
                 // APP_LOGGER.error(plugin.targetText);
                 // APP_LOGGER.error(plugin.targetText.match(/#\\{.+?\\}/g)?.toString() ?? "null!!!");
-                const replaceText = plugin.targetText.replace(/#\{.+?\}/g, match => {
+                const replaceText = plugin.targetText.replace(/#\{.+?\}/gs, match => {
                     // APP_LOGGER.error("match");
                     const script: string = match.slice(2, -1).trim();
-                    const rootText: string = script.replace(/(.*?)/g, "").trim();
+                    const rootText: string = script.replace(/(.*?)/gs, "").trim();
                     let result = rootText
                         .replace("PATH", path.join(buildInfo.tempDir, fPath));
                     // .replace("SRC_PATH", path.join(pluginTempPath, fPath));
                     const functions: string[][] = [];
-                    script.match(/(.*?)/g)?.forEach(func => {
-                        functions.push(func.slice(1, -1).trim().replace(/\s+/g, " ").split(" "));
+                    script.match(/(.*?)/gs)?.forEach(func => {
+                        functions.push(func.slice(1, -1).trim().replace(/\s+/gs, " ").split(" "));
                     });
                     // ここから現時点では不要
                     functions.forEach(fArg => {

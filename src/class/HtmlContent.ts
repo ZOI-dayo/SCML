@@ -33,14 +33,14 @@ export class HtmlContent {
             additionOption = docFunc(buildInfo, options ?? {});
             return "";
         });
-        this.compiledDocument = this.compiledDocument.replace(new RegExp("\\{\\{.*?\\}\\}", "g"), (content: string): string => {
+        this.compiledDocument = this.compiledDocument.replace(new RegExp("\\{\\{.*?\\}\\}", "gs"), (content: string): string => {
             const tagName = content
                 .replace("{{", "")
                 .replace("}}", "")
                 .trim();
             return options[tagName] ?? "";
         });
-        this.compiledDocument = this.compiledDocument.replace(new RegExp("\\[\\[.*?\\]\\]", "g"), (content: string): string => {
+        this.compiledDocument = this.compiledDocument.replace(new RegExp("\\[\\[.*?\\]\\]", "gs"), (content: string): string => {
             const tagName = content
                 .replace("[[", "")
                 .replace("]]", "")
@@ -48,7 +48,7 @@ export class HtmlContent {
             return additionOption[tagName] ?? "";
         });
         for (const component of components) {
-            const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "g");
+            const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "gs");
             // const tagPattern = /< *MyComponent(.*?)\/>/g;
             this.compiledDocument = this.compiledDocument.replace(tagPattern, (match: string): string => {
                 return HtmlContent.compileFromTag(components, buildInfo, component, match, this.name, root);
@@ -68,7 +68,7 @@ export class HtmlContent {
 
     private static compileFromTag(components: Component[], buildInfo: BuildInfo, component: Component, tag: string, srcName: string, page: Page): string {
         const options: { [key: string]: string } = {};
-        const keyValueOptionPattern = new RegExp("\\S+((=\".*?\")|[^\\s\\S])", "g");
+        const keyValueOptionPattern = new RegExp("\\S+((=\".*?\")|[^\\s\\S])", "gs");
         // const simpleOptionPattern = new RegExp("\\S*=\"\\S*\"", "g");
         tag.match(keyValueOptionPattern)?.forEach((optionPairStr: string) => {
             const splittedStr: string[] = optionPairStr.split("=");
