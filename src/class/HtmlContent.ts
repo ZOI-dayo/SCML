@@ -12,7 +12,7 @@ export class HtmlContent {
 
     public constructor(name: string, content: string, type: string) {
         this.name = name;
-        this.document = content;
+        this.document = content.replace("\n", "");
         this.type = type;
         this.compiledDocument = this.document;
     }
@@ -48,7 +48,7 @@ export class HtmlContent {
             return additionOption[tagName] ?? "";
         });
         for (const component of components) {
-            const tagPattern = new RegExp("< *" + component.name + "(.*?)\\/>", "gs");
+            const tagPattern = new RegExp("< *" + component.name + ".*?>(.*?)</\\s*" + component.name + "\\s*>", "gs");
             // const tagPattern = /< *MyComponent(.*?)\/>/g;
             this.compiledDocument = this.compiledDocument.replace(tagPattern, (match: string): string => {
                 return HtmlContent.compileFromTag(components, buildInfo, component, match, this.name, root);
@@ -68,6 +68,9 @@ export class HtmlContent {
 
     private static compileFromTag(components: Component[], buildInfo: BuildInfo, component: Component, tag: string, srcName: string, page: Page): string {
         const options: { [key: string]: string } = {};
+        const tagBeginPattern = new RegExp("< *" + component.name + ".*?>", "gs");
+        const tagEndPattern = new RegExp("</\\s*" + component.name + "\\s*>", "gs");
+        options["content"] = tag.replace(tagBeginPattern, "").replace(tagEndPattern, "").trim();
         const keyValueOptionPattern = new RegExp("\\S+((=\".*?\")|[^\\s\\S])", "gs");
         // const simpleOptionPattern = new RegExp("\\S*=\"\\S*\"", "g");
         tag.match(keyValueOptionPattern)?.forEach((optionPairStr: string) => {

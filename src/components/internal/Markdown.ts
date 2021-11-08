@@ -39,7 +39,7 @@ export class Markdown {
     const fileContent = fs.readFileSync(assetsPath, "utf-8");
     
     marked.Renderer.prototype.paragraph = (text) => {
-        if (text.startsWith("<")) {
+        if (text.trim().startsWith("<")) {
             return text;
         }
         return "<p>" + text + "</p>";

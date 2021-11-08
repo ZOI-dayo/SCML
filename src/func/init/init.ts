@@ -36,7 +36,7 @@ export class InitFunc extends Func {
                 "      \"targetExtension\": \"html\",\n" +
                 "      \"template\": \"assets/templates/md.html\",\n" +
                 "      \"parseText\": \"<!-- mdContent -->\",\n" +
-                "      \"targetText\": \"<Markdown src=\\\"#{PATH}\\\" prefix=\\\"\\\" suffix=\\\"\\\" />\"\n" +
+                "      \"targetText\": \"<Markdown src=\\\"#{PATH}\\\" prefix=\\\"\\\" suffix=\\\"\\\"></Markdown>\"\n" +
                 "    }\n" +
                 "  ]\n" +
                 "}\n",
@@ -55,7 +55,7 @@ export class InitFunc extends Func {
             "pages/index.html":
                 "<div>\n" +
                 "  <MyComponent />\n" +
-                "  <Markdown src=\"@/test.md\" />\n" +
+                "  <Markdown src=\"@/test.md\"></Markdown>\n" +
                 "</div>\n",
             "assets/test.md":
                 "paragraph 1\n" +
