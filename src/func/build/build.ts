@@ -84,7 +84,12 @@ export class BuildFunc extends Func {
         const pages: { [key: string]: Page } = BuildFunc.loadPagesFromTemp(buildInfo);
         for (const name in pages) {
             const page: Page = pages[name];
-            const compiled: string = page.compile(components, buildInfo);
+            let compiled: string = page.compile(components, buildInfo);
+            for (const key in buildInfo.fileEnv) {
+                const value = buildInfo.fileEnv[key];
+                compiled = compiled.replace(`<SCML_ENV_${key} />`, value);
+            }
+            buildInfo.fileEnv = {};
             type PrettierType = { format: (src: string, option: { semi: boolean, parser: string }) => string };
             const formatted: string = (prettier as PrettierType).format(compiled, {
                 semi: false,
@@ -182,6 +187,7 @@ export class BuildInfo {
     public readonly args: string[];
     public readonly config: ConfigFileFormat | undefined;
     public readonly command: Command;
+    public fileEnv: { [key: string]: string };
 
     constructor(currentDir: string, args: string[], options: CommandOption[]) {
         this.currentDir = currentDir;
@@ -191,6 +197,7 @@ export class BuildInfo {
             this.config = JSON.parse(fs.readFileSync(configPath, "utf-8")) as ConfigFileFormat;
         }
         this.command = new Command(args, options);
+        this.fileEnv = {};
     }
 
     public get staticDir(): string {

@@ -37,6 +37,10 @@ export class Markdown {
     // console.log(assetsPath);
     
     const fileContent = fs.readFileSync(assetsPath, "utf-8");
+    fileContent?.match(/\\[\\/\\/SCML_(.*?)\\]: # \\((.*?)\\)/g)?.map(match => {
+        const key = match.match(/\\[\\/\\/SCML_(.*?)\\]: # \\((.*?)\\)/);
+        buildInfo.fileEnv[key[1]] = key[2];
+    });
     
     marked.Renderer.prototype.paragraph = (text) => {
         if (text.trim().startsWith("<")) {
