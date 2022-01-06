@@ -78,13 +78,6 @@ export class HtmlContent {
             const optionKey: string = splittedStr[0];
             options[optionKey] = splittedStr[1].slice(1, -1);
         });
-        tag.trim().split(" ")
-            .map(str => {
-                return str.trim();
-            })
-            .filter(str => {
-                return str.search(/([^a-zA-Z0-9_-])+/) === -1;
-            }).forEach(str => options[str] = "");
         if (srcName === component.name) return "";
         return component.compile(components, buildInfo, page, options);
     }
